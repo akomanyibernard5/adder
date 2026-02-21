@@ -1,0 +1,314 @@
+=== Test 1: Simple integer literal ===
+$ cat test/37.snek
+37
+
+$ cargo run -- test/37.snek test/37.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/adder test/37.snek test/37.s`
+
+$ cat test/37.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 37
+  ret
+
+$ make test/37.run
+nasm -f macho64 test/37.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/37.run
+
+$ ./test/37.run
+37
+
+=== Test 2: Nested add1 operations ===
+$ cat test/add.snek
+(add1 (add1 5))
+
+$ cargo run -- test/add.snek test/add.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/add.snek test/add.s`
+
+$ cat test/add.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 5
+  add rax, 1
+  add rax, 1
+  ret
+
+$ make test/add.run
+nasm -f macho64 test/add.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/add.run
+
+$ ./test/add.run
+7
+
+=== Test 3: Sub1 operation ===
+$ cat test/sub.snek
+(sub1 10)
+
+$ cargo run -- test/sub.snek test/sub.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/sub.snek test/sub.s`
+
+$ cat test/sub.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 10
+  sub rax, 1
+  ret
+
+$ make test/sub.run
+nasm -f macho64 test/sub.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/sub.run
+
+$ ./test/sub.run
+9
+
+=== Test 4: Negate positive number ===
+$ cat test/neg1.snek
+(negate 7)
+
+$ cargo run -- test/neg1.snek test/neg1.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/neg1.snek test/neg1.s`
+
+$ cat test/neg1.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 7
+  neg rax
+  ret
+
+$ make test/neg1.run
+nasm -f macho64 test/neg1.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/neg1.run
+
+$ ./test/neg1.run
+-7
+
+=== Test 5: Complex nested expression ===
+$ cat test/nested1.snek
+(add1 (sub1 (add1 5)))
+
+$ cargo run -- test/nested1.snek test/nested1.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/nested1.snek test/nested1.s`
+
+$ cat test/nested1.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 5
+  add rax, 1
+  sub rax, 1
+  add rax, 1
+  ret
+
+$ make test/nested1.run
+nasm -f macho64 test/nested1.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/nested1.run
+
+$ ./test/nested1.run
+6
+
+=== Test 6: Negative number literal ===
+$ cat test/negative.snek
+-10
+
+$ cargo run -- test/negative.snek test/negative.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/negative.snek test/negative.s`
+
+$ cat test/negative.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, -10
+  ret
+
+$ make test/negative.run
+nasm -f macho64 test/negative.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/negative.run
+
+$ ./test/negative.run
+-10
+
+=== Test 7: Maximum 32-bit integer ===
+$ cat test/max-int.snek
+2147483647
+
+$ cargo run -- test/max-int.snek test/max-int.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/max-int.snek test/max-int.s`
+
+$ cat test/max-int.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 2147483647
+  ret
+
+$ make test/max-int.run
+nasm -f macho64 test/max-int.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/max-int.run
+
+$ ./test/max-int.run
+2147483647
+
+=== Test 8: Minimum 32-bit integer ===
+$ cat test/min-int.snek
+-2147483648
+
+$ cargo run -- test/min-int.snek test/min-int.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/min-int.snek test/min-int.s`
+
+$ cat test/min-int.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, -2147483648
+  ret
+
+$ make test/min-int.run
+nasm -f macho64 test/min-int.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/min-int.run
+
+$ ./test/min-int.run
+-2147483648
+
+=== Test 9: Add1 with negative number ===
+$ cat test/add1-neg.snek
+(add1 -5)
+
+$ cargo run -- test/add1-neg.snek test/add1-neg.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/add1-neg.snek test/add1-neg.s`
+
+$ cat test/add1-neg.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, -5
+  add rax, 1
+  ret
+
+$ make test/add1-neg.run
+nasm -f macho64 test/add1-neg.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/add1-neg.run
+
+$ ./test/add1-neg.run
+-4
+
+=== Test 10: Negate negative number ===
+$ cat test/negate-neg.snek
+(negate -7)
+
+$ cargo run -- test/negate-neg.snek test/negate-neg.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/negate-neg.snek test/negate-neg.s`
+
+$ cat test/negate-neg.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, -7
+  neg rax
+  ret
+
+$ make test/negate-neg.run
+nasm -f macho64 test/negate-neg.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/negate-neg.run
+
+$ ./test/negate-neg.run
+7
+
+=== Test 11: Triple negation ===
+$ cat test/triple-neg.snek
+(negate (negate (negate 2)))
+
+$ cargo run -- test/triple-neg.snek test/triple-neg.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/triple-neg.snek test/triple-neg.s`
+
+$ cat test/triple-neg.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 2
+  neg rax
+  neg rax
+  neg rax
+  ret
+
+$ make test/triple-neg.run
+nasm -f macho64 test/triple-neg.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/triple-neg.run
+
+$ ./test/triple-neg.run
+-2
+
+=== Test 12: Sub1 from zero ===
+$ cat test/sub1-zero.snek
+(sub1 0)
+
+$ cargo run -- test/sub1-zero.snek test/sub1-zero.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/sub1-zero.snek test/sub1-zero.s`
+
+$ cat test/sub1-zero.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 0
+  sub rax, 1
+  ret
+
+$ make test/sub1-zero.run
+nasm -f macho64 test/sub1-zero.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/sub1-zero.run
+
+$ ./test/sub1-zero.run
+-1
+
+=== Test 13: Complex nested with max int ===
+$ cat test/big.snek
+(add1 (sub1 (negate 2147483647)))
+
+$ cargo run -- test/big.snek test/big.s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/adder test/big.snek test/big.s`
+
+$ cat test/big.s
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov rax, 2147483647
+  neg rax
+  sub rax, 1
+  add rax, 1
+  ret
+
+$ make test/big.run
+nasm -f macho64 test/big.s -o runtime/our_code.o
+ar rcs runtime/libour_code.a runtime/our_code.o
+rustc --target x86_64-apple-darwin -L runtime runtime/start.rs -o test/big.run
+
+$ ./test/big.run
+-2147483647
